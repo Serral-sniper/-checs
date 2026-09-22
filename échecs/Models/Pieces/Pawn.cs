@@ -1,6 +1,14 @@
-namespace échecs;
+namespace échecs.Models.Pieces;
 
-public class Pawn
+public class Pawn : Piece
 {
-    
+    public Pawn(EColor color, Position position) : base(color, position)
+    {
+        
+    }
+
+    public override void Move()
+    {
+        
+    }
 }

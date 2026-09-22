@@ -1,4 +1,4 @@
-namespace échecs;
+namespace échecs.Models;
 
 public enum EColor
 {

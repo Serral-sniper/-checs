@@ -1,6 +1,14 @@
-namespace échecs;
+namespace échecs.Models.Pieces;
 
-public class Rook
+public class Rook : Piece
 {
-    
+    public Rook(EColor color, Position position) : base(color, position)
+    {
+        
+    }
+
+    public override void Move()
+    {
+        
+    }
 }

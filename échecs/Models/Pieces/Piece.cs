@@ -1,14 +1,16 @@
-namespace échecs;
+namespace échecs.Models.Pieces;
 
 public abstract class Piece
 {
-    protected EColor _Color { get; private set; }
-    protected Position _Position { get; private set; }
+    protected EColor Color { get; private set; }
+    protected Position Position { get; private set; }
 
     protected Piece(EColor color, Position position)
     {
-        _Color = color;
-        _Position = position;
+        Color = color;
+        Position = position;
     }
+
+    public abstract void Move();
 
 }
