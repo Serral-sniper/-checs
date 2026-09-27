@@ -2,8 +2,8 @@ namespace échecs.Models.Pieces;
 
 public abstract class Piece
 {
-    protected EColor Color { get; private set; }
-    protected Position Position { get; private set; }
+    public EColor Color { get; protected set; }
+    public Position Position { get; protected set; }
 
     protected Piece(EColor color, Position position)
     {
