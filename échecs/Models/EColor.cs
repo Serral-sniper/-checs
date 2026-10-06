@@ -2,6 +2,6 @@ namespace échecs.Models;
 
 public enum EColor
 {
-    white,
-    black
+    White,
+    Black
 }

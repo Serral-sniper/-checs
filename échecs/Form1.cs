@@ -1,6 +1,7 @@
 using échecs.Models;
-using échecs.Views;
 using View = échecs.Views.View;
+using échecs.Models.Pieces;
+using échecs.Controllers;
 
 namespace échecs;
 
@@ -38,8 +39,10 @@ public partial class Form1 : Form
         Controls.Add(_statusLabel);
     }
 
-    private void ChessBoardOnPieceSelected(Position position1)
+    private void ChessBoardOnPieceSelected(Position position)
     {
-        _statusLabel.Text = $"Pièce sélectionnée — X: {position1.X}, Y: {position1.Y}";
+        Piece piece = _view.GetBoard()[position.X, position.Y];
+        List<Position> moves = piece.GetPossibleMoves(_view, piece);
+        _chessBoard.SetMovableSquares(moves);
     }
 }

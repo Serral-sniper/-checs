@@ -1,4 +1,5 @@
 namespace échecs.Models.Pieces;
+using View = échecs.Views.View;
 
 public class Rook : Piece
 {
@@ -7,8 +8,13 @@ public class Rook : Piece
         
     }
 
-    public override void Move()
+    public override List<Position> GetPossibleMoves(View view, Piece piece)
     {
+        List<Position> possibleMoves = new();
         
+        
+        
+        
+        return possibleMoves;
     }
 }

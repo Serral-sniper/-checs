@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using View = échecs.Views.View;
 
 namespace échecs.Models.Pieces;
 
@@ -9,8 +10,13 @@ public class Bishop : Piece
         
     }
 
-    public override void Move()
+    public override List<Position> GetPossibleMoves(View view, Piece piece)
     {
+        List<Position> possibleMoves = new();
         
+        
+        
+        
+        return possibleMoves;
     }
 }
