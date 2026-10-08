@@ -1,11 +1,9 @@
 namespace échecs.Models.Pieces;
-using View = échecs.Views.View;
 
 public abstract class Piece
 {
     public EColor Color { get; protected set; }
     public Position Position { get; protected set; }
-    
 
     protected Piece(EColor color, Position position)
     {
@@ -13,9 +11,21 @@ public abstract class Piece
         Position = position;
     }
 
-    public abstract List<Position> GetPossibleMoves(View view, Piece piece);
-    protected virtual (int x, int y) ChangeAdders(EColor color,int x, int y)
+    /// <summary>
+    /// Calcule les cases atteignables. Ne modifie JAMAIS l'état : c'est une simple lecture.
+    /// </summary>
+    public abstract List<Position> GetPossibleMoves(Board board);
+
+    /// <summary>
+    /// Appelé par Board.Move quand le coup est réellement joué.
+    /// </summary>
+    public virtual void MoveTo(Position destination)
     {
-        return (x, y); 
+        Position = destination;
+    }
+
+    protected virtual (int x, int y) ChangeAdders(EColor color, int x, int y)
+    {
+        return (x, y);
     }
 }

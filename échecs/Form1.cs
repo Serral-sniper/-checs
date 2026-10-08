@@ -1,22 +1,24 @@
 using échecs.Models;
-using View = échecs.Views.View;
-using échecs.Models.Pieces;
-using échecs.Controllers;
+using échecs.Views;
 
 namespace échecs;
 
-public partial class Form1 : Form
+/// <summary>
+/// VUE (fenêtre) : assemble les contrôles et implémente IChessView.
+/// Aucune règle du jeu ici : elle relaie les clics et affiche ce qu'on lui dit.
+/// </summary>
+public partial class Form1 : Form, IChessView
 {
-    private readonly View _view;
     private readonly ChessBoardControl _chessBoard;
     private readonly Label _statusLabel;
 
-    public Form1()
+    public event Action<Position>? SquareClicked;
+
+    public Form1(Board board)
     {
         InitializeComponent();
 
-        _view = new View();
-        _chessBoard = new ChessBoardControl(_view)
+        _chessBoard = new ChessBoardControl(board)
         {
             Dock = DockStyle.Fill,
             Margin = new Padding(0)
@@ -26,23 +28,26 @@ public partial class Form1 : Form
         {
             Dock = DockStyle.Bottom,
             Height = 34,
-            Text = "Sélectionne une pièce",
             TextAlign = ContentAlignment.MiddleCenter,
             ForeColor = Color.FromArgb(220, 220, 220),
             BackColor = Color.FromArgb(32, 35, 31),
             Font = new Font("Segoe UI", 10f)
         };
 
-        _chessBoard.PieceSelected += ChessBoardOnPieceSelected;
+        // On relaie simplement le clic vers le contrôleur.
+        _chessBoard.SquareClicked += position => SquareClicked?.Invoke(position);
 
         Controls.Add(_chessBoard);
         Controls.Add(_statusLabel);
     }
 
-    private void ChessBoardOnPieceSelected(Position position)
+    public void ShowSelection(Position? selected, IEnumerable<Position> moves, IEnumerable<Position> captures)
     {
-        Piece piece = _view.GetBoard()[position.X, position.Y];
-        List<Position> moves = piece.GetPossibleMoves(_view, piece);
-        _chessBoard.SetMovableSquares(moves);
+        _chessBoard.ShowSelection(selected, moves, captures);
+    }
+
+    public void ShowStatus(string message)
+    {
+        _statusLabel.Text = message;
     }
 }

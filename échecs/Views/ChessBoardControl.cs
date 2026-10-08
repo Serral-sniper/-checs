@@ -1,16 +1,18 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using échecs.Models;
 using échecs.Models.Pieces;
-using View = échecs.Views.View;
 
-namespace échecs.Controllers;
+namespace échecs.Views;
 
 /// <summary>
-/// Contrôle graphique de l'échiquier.
-/// La logique des déplacements reste dans le Controller.
-/// 
-/// Convention du projet actuel :
+/// VUE : dessine l'échiquier et signale les clics.
+/// Elle ne décide de rien : pas de sélection, pas de règles, pas de calcul de coups.
+/// Elle lit le modèle (Board) pour dessiner et se redessine quand il change.
+/// Ce qu'il faut surligner lui est dicté par le contrôleur via ShowSelection.
+///
+/// Convention du projet :
 /// Position.X = ligne (0..7)
 /// Position.Y = colonne (0..7)
 /// </summary>
@@ -27,30 +29,21 @@ public sealed class ChessBoardControl : Control
     private static readonly Color MovableBorder = Color.FromArgb(170, 105, 15);
     private static readonly Color CaptureBorder = Color.FromArgb(145, 35, 30);
     
-    private readonly View _view;
+    private readonly Board _board;
 
     private Position? _selectedPosition;
     private readonly HashSet<(int X, int Y)> _movableSquares = new();
     private readonly HashSet<(int X, int Y)> _captureSquares = new();
 
     /// <summary>
-    /// Déclenché lorsqu'une pièce est sélectionnée.
-    /// Le Controller peut alors calculer les déplacements possibles.
-    /// </summary>
-    public event Action<Position>? PieceSelected;
-
-    /// <summary>
-    /// Déclenché lorsqu'une case est cliquée.
-    /// Utile pour laisser le Controller décider quoi faire
-    /// d'une case de déplacement ou de capture.
+    /// Déclenché quand l'utilisateur clique sur une case de l'échiquier.
+    /// C'est le contrôleur qui décide quoi en faire.
     /// </summary>
     public event Action<Position>? SquareClicked;
 
-    public Position? SelectedPosition => _selectedPosition;
-
-    public ChessBoardControl(View view)
+    public ChessBoardControl(Board board)
     {
-        _view = view ?? throw new ArgumentNullException(nameof(view));
+        _board = board ?? throw new ArgumentNullException(nameof(board));
 
         DoubleBuffered = true;
         ResizeRedraw = true;
@@ -59,80 +52,45 @@ public sealed class ChessBoardControl : Control
         Cursor = Cursors.Hand;
 
         MouseClick += OnMouseClick;
+        _board.Changed += OnBoardChanged;   // Observer : le modèle prévient, la vue se redessine
+    }
+
+    private void OnBoardChanged(object? sender, EventArgs e)
+    {
+        Invalidate();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+            _board.Changed -= OnBoardChanged;
+
+        base.Dispose(disposing);
     }
 
     /// <summary>
-    /// Définit les cases où la pièce sélectionnée peut se déplacer.
-    /// Ces cases sont affichées en orange.
+    /// Affiche ce que le contrôleur demande :
+    /// la case sélectionnée, les déplacements possibles (orange) et les captures (rouge).
+    /// selected = null efface tout.
     /// </summary>
-    public void SetMovableSquares(IEnumerable<Position> positions)
+    public void ShowSelection(Position? selected, IEnumerable<Position> moves, IEnumerable<Position> captures)
     {
-        _movableSquares.Clear();
+        _selectedPosition = selected;
 
-        foreach (Position position in positions)
+        _movableSquares.Clear();
+        foreach (Position position in moves)
         {
-            if (IsInsideBoard(position))
+            if (Board.IsInside(position))
                 _movableSquares.Add((position.X, position.Y));
         }
 
-        Invalidate();
-    }
-
-    /// <summary>
-    /// Définit les cases contenant une pièce adverse pouvant être capturée.
-    /// Ces cases sont affichées en rouge.
-    /// </summary>
-    public void SetCaptureSquares(IEnumerable<Position> positions)
-    {
         _captureSquares.Clear();
-
-        foreach (Position position in positions)
+        foreach (Position position in captures)
         {
-            if (IsInsideBoard(position))
+            if (Board.IsInside(position))
                 _captureSquares.Add((position.X, position.Y));
         }
 
-        Invalidate();
-    }
-
-    /// <summary>
-    /// Efface toutes les cases orange/rouges.
-    /// </summary>
-    public void ClearMoveHighlights()
-    {
-        _movableSquares.Clear();
-        _captureSquares.Clear();
-        Invalidate();
-    }
-
-    /// <summary>
-    /// Sélectionne directement une position depuis le Controller.
-    /// </summary>
-    public void SelectPosition(Position? position)
-    {
-        _selectedPosition = position is not null && IsInsideBoard(position)
-            ? new Position(position.X, position.Y)
-            : null;
-
-        Invalidate();
-    }
-
-    /// <summary>
-    /// Efface la sélection et les déplacements affichés.
-    /// </summary>
-    public void ClearSelection()
-    {
-        _selectedPosition = null;
-        _movableSquares.Clear();
-        _captureSquares.Clear();
-        Invalidate();
-    }
-
-    /// <summary>
-    /// À appeler après une modification du View.Board.
-    /// </summary>
-    public void RefreshBoard()
-    {
         Invalidate();
     }
 
@@ -177,7 +135,7 @@ public sealed class ChessBoardControl : Control
 
                 DrawHighlightBorder(e.Graphics, square, row, col);
 
-                Piece? piece = _view.GetCase(new Position(row, col));
+                Piece? piece = _board.GetCase(new Position(row, col));
 
                 if (piece is not null)
                     DrawPiece(e.Graphics, piece, square);
@@ -278,34 +236,11 @@ public sealed class ChessBoardControl : Control
         if (e.Button != MouseButtons.Left)
             return;
 
-        if (!TryGetBoardPosition(e.Location, out Position? position))
-            return;
-
-        SquareClicked?.Invoke(position);
-
-        Piece? piece = _view.GetCase(position);
-
-        // Une pièce est cliquée : elle devient la pièce sélectionnée.
-        if (piece is not null)
-        {
-            _selectedPosition = new Position(position.X, position.Y);
-
-            // Les anciennes cases possibles appartenaient à l'ancienne sélection.
-            _movableSquares.Clear();
-            _captureSquares.Clear();
-
-            PieceSelected?.Invoke(_selectedPosition);
-            Invalidate();
-            return;
-        }
-
-        // Clic sur une case vide : on garde la sélection.
-        // Le Controller reçoit le clic via SquareClicked et décide
-        // si cette case est un déplacement valide.
-        Invalidate();
+        if (TryGetBoardPosition(e.Location, out Position? position))
+            SquareClicked?.Invoke(position);
     }
 
-    private bool TryGetBoardPosition(Point mousePosition, out Position? position)
+    private bool TryGetBoardPosition(Point mousePosition, [NotNullWhen(true)] out Position? position)
     {
         int boardSize = Math.Min(ClientSize.Width, ClientSize.Height);
 
@@ -348,13 +283,5 @@ public sealed class ChessBoardControl : Control
         return _selectedPosition is not null &&
                _selectedPosition.X == row &&
                _selectedPosition.Y == col;
-    }
-
-    private static bool IsInsideBoard(Position position)
-    {
-        return position.X >= 0 &&
-               position.X < 8 &&
-               position.Y >= 0 &&
-               position.Y < 8;
     }
 }

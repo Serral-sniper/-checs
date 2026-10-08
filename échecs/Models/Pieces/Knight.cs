@@ -1,25 +1,20 @@
 namespace échecs.Models.Pieces;
-using View = échecs.Views.View;
 
 public class Knight : Piece
 {
     public Knight(EColor color, Position position) : base(color, position)
     {
-        
     }
 
-
-    public override List<Position> GetPossibleMoves(View view, Piece piece)
+    public override List<Position> GetPossibleMoves(Board board)
     {
         List<Position> possibleMoves = new();
-        
-        
-        
-        
+
         return possibleMoves;
     }
-    protected override (int x, int y) ChangeAdders(EColor color,int x, int y)
+
+    protected override (int x, int y) ChangeAdders(EColor color, int x, int y)
     {
-        return (color is EColor.Black)? (x, y) : (-x, -y);
+        return color is EColor.Black ? (x, y) : (-x, -y);
     }
 }
