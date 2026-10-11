@@ -13,8 +13,8 @@ public class King : Piece
         return possibleMoves;
     }
 
-    protected override (int x, int y) ChangeAdders(EColor color, int x, int y)
+    protected override Position ComputePosition(EColor color, int coeffX, int coeffY)
     {
-        return color is EColor.Black ? (x, y) : (-x, -y);
+        return color is EColor.Black ? base.ComputePosition(color, coeffX, coeffY) : new  Position(Position.X - coeffX, Position.Y - coeffY);
     }
 }

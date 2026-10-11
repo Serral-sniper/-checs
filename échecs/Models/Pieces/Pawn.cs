@@ -11,13 +11,14 @@ public class Pawn : Piece
 
     public override List<Position> GetPossibleMoves(Board board)
     {
-        List<Position> possibleMoves = new();
+        List<Position> possibleMoves = new(){ChangeAdders(Color, 1, 1), ChangeAdders(Color, 1, -1)};
+        
         
         if (FirstMove)
         {
             
         }
-
+        RemoveNullFromPositions(possibleMoves);
         return possibleMoves;
     }
 
@@ -31,8 +32,8 @@ public class Pawn : Piece
         FirstMove = false;
     }
 
-    protected override (int x, int y) ChangeAdders(EColor color, int x, int y)
+    protected override Position ComputePosition(EColor color, int coeffX, int coeffY)
     {
-        return color is EColor.Black ? (x, y) : (-x, -y);
+        return color is EColor.Black ? base.ComputePosition(color, coeffX, coeffY) : new  Position(Position.X - coeffX, Position.Y - coeffY);
     }
 }

@@ -32,15 +32,22 @@ public sealed class GameController
     {
         // 1. Une pièce est sélectionnée et la case cliquée est un déplacement
         //    (ou une capture) possible : on joue le coup dans le modèle.
+        Piece? piece;
         if (_selected is not null && _possibleMoves.Contains(position))
         {
+            if (_board.GetCase(position) is not null && _board.GetCase(_selected).Color == _board.GetCase(position).Color)
+            {
+                piece = _board.GetCase(position);
+                Select(position, piece);
+                return;
+            }
             _board.Move(_selected, position);   // le modèle notifie la vue via Board.Changed
             ClearSelection();
             return;
         }
 
         // 2. Sinon, si la case contient une pièce : on la sélectionne.
-        Piece? piece = _board.GetCase(position);
+        piece = _board.GetCase(position);
         if (piece is not null)
         {
             Select(position, piece);
@@ -60,7 +67,10 @@ public sealed class GameController
         List<Position> captures = _possibleMoves
             .Where(p => _board.GetCase(p) is { } target && target.Color != piece.Color)
             .ToList();
-        List<Position> moves = _possibleMoves.Except(captures).ToList();
+        List<Position> moves = _possibleMoves
+            .Except(captures)
+            .Where(p => _board.GetCase(p) is null)
+            .ToList();
 
         _view.ShowSelection(position, moves, captures);
         _view.ShowStatus($"{_possibleMoves.Count} déplacement(s) possible(s)");

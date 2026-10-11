@@ -24,8 +24,21 @@ public abstract class Piece
         Position = destination;
     }
 
-    protected virtual (int x, int y) ChangeAdders(EColor color, int x, int y)
+    protected Position? ChangeAdders(EColor color, int x, int y)
     {
-        return (x, y);
+        Position newPosition = ComputePosition(color, x, y); // comportement défaut ou override
+
+        return Board.IsInside(newPosition) ? newPosition : null;
+    }
+
+// Calcul par défaut, redéfinissable
+    protected virtual Position ComputePosition(EColor color, int coeffX, int coeffY)
+    {
+        return new Position(Position.X + coeffX, Position.Y + coeffY);
+    }
+    
+    protected void RemoveNullFromPositions(List<Position> possibleMoves)
+    {
+        possibleMoves.RemoveAll(p => p is null);
     }
 }
