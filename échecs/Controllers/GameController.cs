@@ -73,7 +73,7 @@ public sealed class GameController
             .ToList();
 
         _view.ShowSelection(position, moves, captures);
-        _view.ShowStatus($"{_possibleMoves.Count} déplacement(s) possible(s)");
+        _view.ShowStatus($"{captures.Count + moves.Count} déplacement(s) possible(s)");
     }
 
     private void ClearSelection()
