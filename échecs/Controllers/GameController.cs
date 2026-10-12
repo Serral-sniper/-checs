@@ -69,7 +69,7 @@ public sealed class GameController
             .ToList();
         List<Position> moves = _possibleMoves
             .Except(captures)
-            .Where(p => _board.GetCase(p) is null)
+            .Where(p => !_board.HasPiece(p))
             .ToList();
 
         _view.ShowSelection(position, moves, captures);
