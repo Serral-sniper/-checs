@@ -18,13 +18,7 @@ public class Pawn : Piece
         possibleMoves.Add(ComputeDiagonal(ChangeAdders(Color, 1, -1), board));
         Position? tempCase = ChangeAdders(Color, 1, 0);
 
-        switch (FirstMove, tempCase is not null)
-        {
-            case (true, false) : 
-                break;
-            case (false, true) :
-                break;
-        }
+        AddForwardMoves(possibleMoves, board);
         
         RemoveNullFromPositions(possibleMoves);
         return possibleMoves;
@@ -52,5 +46,19 @@ public class Pawn : Piece
             return position;
         }
         return null;
+    }
+    private bool CanAdvanceTo(Position? pos, Board board) => pos is not null && !board.HasPiece(pos);
+
+    private void AddForwardMoves(List<Position> moves, Board board)
+    {
+        Position? oneStep = ChangeAdders(Color, 1, 0);
+        if (!CanAdvanceTo(oneStep, board))
+            return;
+
+        moves.Add(oneStep!);
+
+        Position? twoSteps = ChangeAdders(Color, 2, 0);
+        if (FirstMove && CanAdvanceTo(twoSteps, board))
+            moves.Add(twoSteps!);
     }
 }
