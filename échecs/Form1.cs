@@ -34,7 +34,7 @@ public partial class Form1 : Form, IChessView
             Font = new Font("Segoe UI", 10f)
         };
 
-        // On relaie simplement le clic vers le contrôleur.
+        
         _chessBoard.SquareClicked += position => SquareClicked?.Invoke(position);
 
         Controls.Add(_chessBoard);

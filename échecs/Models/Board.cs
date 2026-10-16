@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using échecs.Models.Pieces;
 
 namespace échecs.Models;
@@ -10,6 +11,8 @@ namespace échecs.Models;
 public class Board
 {
     public const int Size = 8;
+    
+    public EColor CurrentTurn { get; private set; } = EColor.White;
 
     private readonly Piece?[,] _squares = new Piece?[Size, Size];
 
@@ -67,6 +70,8 @@ public class Board
 
     public static bool IsInside(Position position)
     {
+        if(position is null)
+            return false;
         return position.X >= 0 && position.X < Size &&
                position.Y >= 0 && position.Y < Size;
     }
@@ -90,16 +95,38 @@ public class Board
     /// </summary>
     public void Move(Position from, Position to)
     {
-        Piece piece = GetCase(from)
-                      ?? throw new InvalidOperationException("Aucune pièce sur la case de départ.");
+        Piece? piece = GetCase(from);
+        if (piece is null || piece.Color != CurrentTurn || !IsInside(to))
+            return;
 
-        if (!IsInside(to))
-            throw new ArgumentOutOfRangeException(nameof(to), "Case d'arrivée hors de l'échiquier.");
-
-        _squares[to.X, to.Y] = piece;      // écrase une éventuelle pièce capturée
+        _squares[to.X, to.Y] = piece;
         _squares[from.X, from.Y] = null;
         piece.MoveTo(to);
 
+        CurrentTurn = CurrentTurn == EColor.White
+            ? EColor.Black
+            : EColor.White;
+
         Changed?.Invoke(this, EventArgs.Empty);
+    }
+    // <summary>
+    // Retourne la liste de positions possibles.
+    // Retourne une liste vide en cas d'érreur.
+    // </summary>
+    public List<Position> GetLegalMoves(Position from)
+    {
+        Piece? piece = GetCase(from);
+
+        if (piece is null || piece.Color != CurrentTurn)
+            return new List<Position>();
+
+        return piece.GetPossibleMoves(this)
+            .Where(to => IsLegalMove(from, to))
+            .ToList();
+    }
+
+    private bool IsLegalMove(Position from, Position to)
+    {
+        return true;
     }
 }

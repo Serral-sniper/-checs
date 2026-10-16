@@ -39,7 +39,7 @@ public class Pawn : Piece
         return color is EColor.Black ? base.ComputePosition(color, coeffX, coeffY) : new  Position(Position.X - coeffX, Position.Y - coeffY);
     }
 
-    public Position ComputeDiagonal(Position position, Board board)
+    public Position? ComputeDiagonal(Position position, Board board)
     {
         if (board.HasPiece(position) && board.GetCase(position).Color != Color)
         {

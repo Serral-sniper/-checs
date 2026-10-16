@@ -61,7 +61,7 @@ public sealed class GameController
     private void Select(Position position, Piece piece)
     {
         _selected = position;
-        _possibleMoves = piece.GetPossibleMoves(_board);
+        _possibleMoves = _board.GetLegalMoves(position);
 
         // Capture = case occupée par une pièce adverse ; sinon simple déplacement.
         List<Position> captures = _possibleMoves
