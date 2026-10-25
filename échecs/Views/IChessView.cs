@@ -21,4 +21,6 @@ public interface IChessView
     void ShowSelection(Position? selected, IEnumerable<Position> moves, IEnumerable<Position> captures);
 
     void ShowStatus(string message);
+    
+    EPromotionType ChoosePromotion(EColor color);
 }

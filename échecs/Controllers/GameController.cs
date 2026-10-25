@@ -28,35 +28,60 @@ public sealed class GameController
         _view.ShowStatus(SelectPieceMessage);
     }
 
+    
+    
     private void OnSquareClicked(Position position)
     {
-        // 1. Une pièce est sélectionnée et la case cliquée est un déplacement
-        //    (ou une capture) possible : on joue le coup dans le modèle.
-        Piece? piece;
         if (_selected is not null && _possibleMoves.Contains(position))
         {
-            if (_board.GetCase(position) is not null && _board.GetCase(_selected).Color == _board.GetCase(position).Color)
+            Position from = _selected;
+            Piece? selectedPiece = _board.GetCase(from);
+            Piece? targetPiece = _board.GetCase(position);
+
+            // Sélectionner une autre pièce de sa propre couleur.
+            if (selectedPiece is not null &&
+                targetPiece is not null &&
+                selectedPiece.Color == targetPiece.Color)
             {
-                piece = _board.GetCase(position);
-                Select(position, piece);
+                Select(position, targetPiece);
                 return;
             }
-            _board.Move(_selected, position);   // le modèle notifie la vue via Board.Changed
+
+            EPromotionType promotionType = EPromotionType.Queen;
+
+            // Vérifier si le pion atteint la dernière rangée.
+            if (selectedPiece is Pawn pawn)
+            {
+                bool mustPromote =
+                    pawn.Color == EColor.White
+                        ? position.X == 0
+                        : position.X == 7;
+
+                if (mustPromote)
+                {
+                    promotionType = _view.ChoosePromotion(pawn.Color);
+                }
+            }
+
+            // Appliquer le déplacement avec le type de pièce choisi.
+            _board.Move(from, position, promotionType);
+
             ClearSelection();
             return;
         }
 
-        // 2. Sinon, si la case contient une pièce : on la sélectionne.
-        piece = _board.GetCase(position);
+        Piece? piece = _board.GetCase(position);
+
         if (piece is not null)
         {
             Select(position, piece);
             return;
         }
 
-        // 3. Case vide qui n'est pas un coup valide : on désélectionne.
         ClearSelection();
     }
+
+
 
     private void Select(Position position, Piece piece)
     {
