@@ -1,26 +1,35 @@
-using System.Diagnostics;
+
 
 namespace échecs.Models.Pieces;
 
 public class Pawn : Piece
 {
     public bool FirstMove { get; private set; }
+    public bool CanBeCapturedEnPassant { get; set; }
 
     public Pawn(EColor color, Position position) : base(color, position)
     {
         FirstMove = true;
+        CanBeCapturedEnPassant = false;
     }
 
     public override List<Position> GetPossibleMoves(Board board)
     {
         List<Position> possibleMoves = new();
-        possibleMoves.Add(ComputeDiagonal(ChangeAdders(Color, 1, 1), board));
-        possibleMoves.Add(ComputeDiagonal(ChangeAdders(Color, 1, -1), board));
-        Position? tempCase = ChangeAdders(Color, 1, 0);
+
+        possibleMoves.Add(
+            ComputeDiagonal(ChangeAdders(Color, 1, 1), board));
+
+        possibleMoves.Add(
+            ComputeDiagonal(ChangeAdders(Color, 1, -1), board));
 
         AddForwardMoves(possibleMoves, board);
-        
+
+        // Prise en passant
+        AddEnPassantMoves(possibleMoves, board);
+
         RemoveNullFromPositions(possibleMoves);
+
         return possibleMoves;
     }
 
@@ -60,5 +69,41 @@ public class Pawn : Piece
         Position? twoSteps = ChangeAdders(Color, 2, 0);
         if (FirstMove && CanAdvanceTo(twoSteps, board))
             moves.Add(twoSteps!);
+    }
+    
+    private void AddEnPassantMoves(
+        List<Position> possibleMoves,
+        Board board)
+    {
+        Position? left = ChangeAdders(Color, 1, -1);
+        Position? right = ChangeAdders(Color, 1, 1);
+
+        if (left is not null &&
+            IsEnPassantTarget(left, board))
+        {
+            possibleMoves.Add(left);
+        }
+
+        if (right is not null &&
+            IsEnPassantTarget(right, board))
+        {
+            possibleMoves.Add(right);
+        }
+    }
+    private bool IsEnPassantTarget(Position target, Board board)
+    {
+        // La case d'arrivée doit être vide.
+        if (board.HasPiece(target))
+            return false;
+
+        // Le pion adverse est sur la même ligne,
+        // mais dans la colonne de la destination.
+        Position adjacent = new Position(Position.X, target.Y);
+
+        if (board.GetCase(adjacent) is not Pawn enemyPawn)
+            return false;
+
+        return enemyPawn.Color != Color
+               && enemyPawn.CanBeCapturedEnPassant;
     }
 }

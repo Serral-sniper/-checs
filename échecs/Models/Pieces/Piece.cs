@@ -41,4 +41,8 @@ public abstract class Piece
     {
         possibleMoves.RemoveAll(p => p is null);
     }
+    internal void SetPositionForSimulation(Position position)
+    {
+        Position = position;
+    }
 }
