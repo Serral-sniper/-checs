@@ -122,7 +122,7 @@ public class Board
         _squares[to.X, to.Y] = piece;
         piece.MoveTo(to);
         
-        // Promotion automatique en dame.
+        // Promotion d'un pion
         if (piece is Pawn pawn && MustPromote(pawn, to))
         {
             PromotePawn(to, pawn, promotionType);

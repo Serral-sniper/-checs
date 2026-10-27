@@ -9,7 +9,9 @@ public class Bishop : Piece
     public override List<Position> GetPossibleMoves(Board board)
     {
         List<Position> possibleMoves = new();
-
+        
+        //Ajouter les déplacements géométriquement possible. (fou)
+        
         return possibleMoves;
     }
 }
